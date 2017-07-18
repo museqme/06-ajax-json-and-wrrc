@@ -20,7 +20,7 @@ Article.prototype.toHtml = function() {
   let template = Handlebars.compile($('#article-template').text());
 
   this.daysAgo = parseInt((new Date() - new Date(this.publishedOn))/60/60/24/1000);
-  this.publishStatus = this.publishedOn ? `published ${this.daysAgo} days ago` : '(draft)';
+  this.publishStatus
   this.body = marked(this.body);
 
   return template(this);
@@ -47,12 +47,26 @@ Article.loadAll = function(rawData) {
 // and process it, then hand off control to the View.
 Article.fetchAll = function() {
   if (localStorage.rawData) {
+    console.log('push');
+
     // When rawData is already in localStorage,
     // we can load it with the .loadAll function above,
     // and then render the index page (using the proper method on the articleView object).
-    Article.loadAll(); //TODO: What do we pass in to loadAll()?
-    //TODO: What method do we call to render the index page?
+
+    Article.loadAll(JSON.parse(localStorage.rawData)); //DONE: What do we pass in to loadAll()?
+    //DONE: What method do we call to render the index page?
+    articleView.initIndexPage();
   } else {
+    $.getJSON("data/hacker.json")
+    .then(
+      function(data) {
+        localStorage.setItem('rawData', JSON.stringify(data));
+        Article.loadAll(data);
+        articleView.initIndexPage();
+      }, function(error) {
+        console.log(err,'errors')
+      })
+      Article.fetchAll();
     // TODO: When we don't already have the rawData,
     // we need to retrieve the JSON file from the server with AJAX (which jQuery method is best for this?),
     // cache it in localStorage so we can skip the server call next time,
